@@ -148,7 +148,6 @@ function updateScore() {
     score.value = snake.value.length - 1
 }
 
-
 </script>
 
 <template>
@@ -160,7 +159,7 @@ function updateScore() {
                     <div v-for="(cell, x) in grid" :key="x" class="game__cell"
                         :class="{ 'game__snake': isCellSnake(x, y), 'game__food': isCellFood(x, y) }"></div>
                 </div>
-                <div v-if="gameOver" class="game__text">Ви прогграли</div>
+                <div v-if="gameOver" class="game__text">Ви програли</div>
             </div>
         </div>
 
