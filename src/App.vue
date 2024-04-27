@@ -4,7 +4,7 @@ import { useMagicKeys, useSwipe } from '@vueuse/core'
 
 
 const grid = 30
-const snake = ref([{ x: 10, y: 10 }])
+const snake = ref([{ x: 15, y: 15 }])
 const food = ref(randomFood())
 const direction = ref('left')
 let gameInterval
