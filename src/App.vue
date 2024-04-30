@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 import { useMagicKeys, useSwipe } from '@vueuse/core'
 
 
@@ -11,6 +11,7 @@ let gameInterval
 const speed = ref(200)
 const { arrowleft, arrowright, arrowup, arrowdown, space } = useMagicKeys()
 const score = ref(0)
+const bestScore = ref(0)
 const swipeFild = ref(null)
 const { direction: swipeDirection } = useSwipe(swipeFild)
 const gameOver = ref(false)
@@ -92,6 +93,8 @@ function moving() {
 function stopGame() {
     clearInterval(gameInterval)
     gameOver.value = true
+    setBestScore()
+    updateLocalStorage()
 }
 
 function checkCollision(head) {
@@ -109,21 +112,39 @@ function checkCollision(head) {
 
 watchEffect(() => {
     if (arrowdown.value && (direction.value !== 'up' || snake.value.length === 1)) {
+        if (direction.value === 'down') {
+            move()
+        }
+
         direction.value = 'down'
     }
     if (arrowup.value && (direction.value !== 'down' || snake.value.length === 1)) {
+        if (direction.value === 'up') {
+            move()
+        }
+
         direction.value = 'up'
     }
     if (arrowright.value && (direction.value !== 'left' || snake.value.length === 1)) {
+        if(direction.value === 'right') {
+            move()
+        }
+
         direction.value = 'right'
     }
     if (arrowleft.value && (direction.value !== 'right' || snake.value.length === 1)) {
+        if(direction.value === 'left') {
+            move()
+        }
+
         direction.value = 'left'
     }
     if (space.value) {
         startGame()
     }
 })
+
+
 
 watchEffect(() => {
     if (swipeDirection.value === 'up' && (direction.value !== 'down' || snake.value.length === 1)) {
@@ -140,6 +161,7 @@ watchEffect(() => {
     }
 })
 
+
 document.addEventListener('touchmove', function (event) {
     event.preventDefault()
 }, { passive: false })
@@ -148,22 +170,46 @@ function updateScore() {
     score.value = snake.value.length - 1
 }
 
+function updateLocalStorage() {
+    localStorage.setItem('bestScore', bestScore.value)
+}
+
+function setBestScore() {
+    if (score.value > bestScore.value) {
+        bestScore.value = score.value
+    }
+}
+onMounted(() => {
+    getBestScore()
+})
+
+
+function getBestScore() {
+    let localHighScore = localStorage.getItem('bestScore')
+    if (localHighScore) {
+        bestScore.value = localHighScore
+    }
+}
+
 </script>
 
 <template>
     <div class="main" ref="swipeFild">
-        <div class="game__stats">Рахунок: {{ score }}</div>
+        <div class="game__stats-wrap">
+            <div class="game__stats">Score: {{ score }}</div>
+            <div class="game__stats">Best score: {{ bestScore }}</div>
+        </div>
         <div class="game">
             <div class="game__board">
                 <div v-for="(row, y) in grid" :key="y" class="game__row">
                     <div v-for="(cell, x) in grid" :key="x" class="game__cell"
                         :class="{ 'game__snake': isCellSnake(x, y), 'game__food': isCellFood(x, y) }"></div>
                 </div>
-                <div v-if="gameOver" class="game__text">Ви програли</div>
+                <div v-if="gameOver" class="game__text">Wasted</div>
             </div>
         </div>
 
-        <button class="game__btn" @click="startGame">Почати гру</button>
+        <button class="game__btn" @click="startGame">Start game</button>
     </div>
 </template>
 
@@ -173,6 +219,7 @@ function updateScore() {
     min-height: 100vh;
     font-family: Arial, Helvetica, sans-serif;
 }
+
 
 .game {
     max-width: 400px;
@@ -234,7 +281,12 @@ function updateScore() {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        
+
+    }
+
+    &__stats-wrap {
+        display: flex;
+        justify-content: space-around;
     }
 }
 </style>
